@@ -1,12 +1,13 @@
-import '@/styles/globals.css'
-import { DefaultSeo } from 'next-seo'
+import '@/styles/globals.css';
+import type { AppProps } from 'next/app';
+import { DefaultSeo } from 'next-seo';
 
-export default function App({ Component, pageProps }) {
+export default function App({ Component, pageProps }: AppProps) {
   return (
     <main>
       <DefaultSeo
         title="BronBeats | The beats you see on IG"
-        description='Rank your favorite Lebron James Remixes'
+        description="Rank your favorite Lebron James Remixes"
         openGraph={{
           type: 'website',
           locale: 'en',
@@ -16,5 +17,5 @@ export default function App({ Component, pageProps }) {
       />
       <Component {...pageProps} />
     </main>
-  )
+  );
 }

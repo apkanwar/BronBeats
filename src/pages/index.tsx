@@ -1,23 +1,28 @@
-import { NextSeo } from "next-seo";
-import { useState } from 'react';
+import { NextSeo } from 'next-seo';
+import { useRouter } from 'next/router';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { Search } from 'lucide-react';
-import Navbar from "@/components/navbar";
+import Navbar from '@/components/navbar';
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const router = useRouter();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-    window.location.href = `/songs?search=${encodeURIComponent(searchQuery)}`;
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!searchQuery.trim()) {
+      return;
+    }
+
+    void router.push(`/songs?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   return (
     <div className="flex flex-col h-screen">
       <NextSeo
         title="BronBeats | The beats you see on IG"
-        description='Rank your favorite Lebron James Remixes'
-        canonical='https://www.bronbeats.com/'
+        description="Rank your favorite Lebron James Remixes"
+        canonical="https://www.bronbeats.com/"
         openGraph={{
           url: 'https://www.bronbeats.com/',
           title: "BronBeats | The beats you see on IG",
@@ -41,13 +46,14 @@ export default function Home() {
           <h1 className="mb-8 text-4xl font-bold text-blue-600 font-headings">LeBron Remix</h1>
           <form onSubmit={handleSearch} className="flex flex-col items-center gap-6 font-main">
             <div className="relative w-full">
-              <input type="text" placeholder="Search LeBron Remixes..." value={searchQuery}
+              <input
+                type="text"
+                placeholder="Search LeBron Remixes..."
+                value={searchQuery}
                 className="w-full p-3 px-8 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value)}
               />
-              <div type="submit"
-                className="absolute right-8 top-3 text-gray-500 hover:text-blue-600 my-0.5"
-              >
+              <div className="pointer-events-none absolute right-8 top-3 my-0.5 text-gray-500">
                 <Search size={20} />
               </div>
             </div>
@@ -67,5 +73,5 @@ export default function Home() {
         The ultimate collection of LeBron James remix songs
       </footer>
     </div>
-  )
+  );
 }
