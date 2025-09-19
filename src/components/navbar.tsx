@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { MouseEvent, ReactElement } from 'react';
-import { UserCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, ChevronUp, UserCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const links: ReadonlyArray<{ href: string; label: string }> = [
@@ -15,6 +16,7 @@ const links: ReadonlyArray<{ href: string; label: string }> = [
 export default function Navbar(): ReactElement {
   const router = useRouter();
   const { isAuthenticated, signInWithGoogle, signOut, user, isFirebaseReady, initializing } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleAuthClick = async (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -27,46 +29,91 @@ export default function Navbar(): ReactElement {
     try {
       if (isAuthenticated) {
         await signOut();
+        setMenuOpen(false);
       } else {
         await signInWithGoogle();
+        setMenuOpen(false);
       }
     } catch (error) {
       console.error('Authentication failed', error);
     }
   };
 
+  const toggleMenu = () => {
+    setMenuOpen((previous) => !previous);
+  };
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <header className="cursor-default select-none text-darkMode">
       <nav className="bg-darkMode p-8">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-4">
-          <Link href="/ " className="flex flex-1 items-center font-headings text-xl">
+          <Link href="/" className="flex flex-1 items-center text-xl">
             <div className="flex items-center gap-4 rounded-full bg-white p-1 pr-5 font-semibold text-darkMode">
               <Image width={40} height={40} src="/logo.png" alt="BronBeats Logo" className="rounded-full" />
               <span>BronBeats</span>
             </div>
           </Link>
 
-          <div className="flex flex-1 items-center justify-end gap-2 font-main text-lg font-medium">
+          <div className="flex flex-1 items-center justify-end gap-2 text-lg font-medium">
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-3 rounded-full bg-white/10 pr-5 p-2 text-white">
-                {user.photoURL ? (
-                  <Image
-                    src={user.photoURL}
-                    alt={user.displayName ?? 'Profile avatar'}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <UserCircle2 size={28} className="text-white" />
-                )}
-                <span className="text-sm font-semibold">{user.displayName ?? 'Remix Fan'}</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={toggleMenu}
+                  className="flex items-center gap-3 rounded-full bg-white/10 px-3 py-1 text-white"
+                >
+                  {user.photoURL ? (
+                    <Image
+                      src={user.photoURL}
+                      alt={user.displayName ?? 'Profile avatar'}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <UserCircle2 size={28} className="text-white" />
+                  )}
+                  <span className="text-sm font-semibold">{user.displayName ?? 'Remix Fan'}</span>
+                  {menuOpen ? <ChevronUp /> : <ChevronDown />}
+                </button>
+                {menuOpen ? (
+                  <div
+                    className="absolute right-0 mt-2 w-48 rounded-xl border border-white/20 bg-darkMode p-3 text-sm text-white shadow-lg"
+                    onMouseLeave={closeMenu}
+                  >
+                    <Link
+                      href="/favorites"
+                      className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                      onClick={closeMenu}
+                    >
+                      Favorited Remixes
+                    </Link>
+                    <Link
+                      href="/votes"
+                      className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                      onClick={closeMenu}
+                    >
+                      Your Votes
+                    </Link>
+                  </div>
+                ) : null}
               </div>
             ) : null}
-            <button onClick={handleAuthClick} disabled={initializing}
-              className="flex flex-row justify-center gap-2 bg-google rounded-full font-main p-[2px] text-sm">
-              {!isAuthenticated ? (
-                <span className="bg-white rounded-full flex items-center gap-2 px-4 py-1 hover:bg-gray-200 w-full">
+            {isAuthenticated ? (
+              <button onClick={handleAuthClick}
+                disabled={initializing}
+                className="flex flex-row justify-center gap-2 bg-google rounded-full font-main p-[2px] text-sm">
+                <span className="bg-white rounded-full flex items-center gap-2 px-4 py-1 hover:bg-gray-100 w-full">
+                  Sign Out
+                </span>
+              </button>
+            ) : (
+              <button onClick={handleAuthClick}
+                disabled={initializing}
+                className="flex flex-row justify-center gap-2 bg-google rounded-full font-main p-[2px]">
+                <span className="bg-white rounded-full flex items-center gap-2 px-4 py-1 hover:bg-gray-100 w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5">
                     <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.6 30.47 0 24 0 14.63 0 6.4 5.38 2.56 13.22l7.98 6.19C12.43 13.24 17.74 9.5 24 9.5z" />
                     <path fill="#34A853" d="M46.5 24.5c0-1.58-.14-3.09-.39-4.5H24v9h12.65c-.55 2.96-2.23 5.47-4.72 7.16l7.24 5.63C43.74 38.44 46.5 31.96 46.5 24.5z" />
@@ -75,21 +122,17 @@ export default function Navbar(): ReactElement {
                   </svg>
                   Sign In
                 </span>
-              ) : (
-                <span className="bg-white rounded-full flex items-center gap-2 px-4 py-1 hover:bg-gray-200 w-full">
-                  Sign Out
-                </span>
-              )}
-            </button>
+              </button>
+            )}
           </div>
         </div>
       </nav>
 
       <div className="px-8 py-3">
         <div className="mx-auto flex max-w-7xl gap-4">
-          <nav className="flex gap-8 font-headings text-xl leading-6" aria-label="Primary">
+          <nav className="flex gap-8 text-xl leading-6" aria-label="Primary">
             {links.map((link) => {
-              const isActive = router.pathname.endsWith(link.href);
+              const isActive = link.href === '/' ? router.pathname === '/' : router.pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.href}

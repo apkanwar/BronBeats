@@ -1,29 +1,17 @@
 import { FirebaseError } from 'firebase/app';
-import {
-  collection,
-  doc,
-  onSnapshot,
-  runTransaction,
-  setDoc,
-  Unsubscribe
-} from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, runTransaction, serverTimestamp, setDoc, Unsubscribe } from 'firebase/firestore';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { firebaseServices } from '@/lib/firebase/client';
+import { useRemixLibrary } from '@/context/RemixLibraryContext';
 import { useAuth } from './AuthContext';
 
 type VoteValue = 'up' | 'down';
 
 type VoteMap = Record<string, VoteValue>;
 
-type RemixStats = {
-  upvotes: number;
-  downvotes: number;
-};
-
 type RemixDataContextValue = {
   favorites: string[];
   votes: VoteMap;
-  stats: Record<string, RemixStats>;
   loading: boolean;
   error: string | null;
   isFavorite: (remixId: string) => boolean;
@@ -31,12 +19,11 @@ type RemixDataContextValue = {
   toggleFavorite: (remixId: string) => Promise<void>;
   vote: (remixId: string, direction: VoteValue) => Promise<void>;
   getNetVotes: (remixId: string) => number;
+  getAggregates: (remixId: string) => { upvotes: number; downvotes: number };
   clearError: () => void;
 };
 
 const RemixDataContext = createContext<RemixDataContextValue | undefined>(undefined);
-
-const defaultStats: RemixStats = { upvotes: 0, downvotes: 0 };
 
 function isFirebaseError(error: unknown): error is FirebaseError {
   return error instanceof FirebaseError;
@@ -45,16 +32,15 @@ function isFirebaseError(error: unknown): error is FirebaseError {
 export function RemixDataProvider({ children }: { children: ReactNode }) {
   const { firestore, isConfigured } = firebaseServices;
   const { user } = useAuth();
+  const { remixes } = useRemixLibrary();
 
   const [favorites, setFavorites] = useState<string[]>([]);
   const [votes, setVotes] = useState<VoteMap>({});
-  const [stats, setStats] = useState<Record<string, RemixStats>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let unsubUserDoc: Unsubscribe | undefined;
-    let unsubStats: Unsubscribe | undefined;
     let canceled = false;
 
     setLoading(true);
@@ -63,112 +49,75 @@ export function RemixDataProvider({ children }: { children: ReactNode }) {
     if (!firestore || !isConfigured) {
       setFavorites([]);
       setVotes({});
-      setStats({});
       setError('Voting, favorites, and leaderboard stats require Firebase configuration.');
       setLoading(false);
       return () => undefined;
     }
 
-    let statsLoaded = false;
     let profileLoaded = !user;
 
     const markLoaded = () => {
-      if (!canceled && statsLoaded && profileLoaded) {
+      if (!canceled && profileLoaded) {
         setLoading(false);
       }
     };
 
-    try {
-      unsubStats = onSnapshot(
-        collection(firestore, 'remixStats'),
-        (snapshot) => {
+    if (user) {
+      const profileDocRef = doc(firestore, 'profiles', user.uid);
+
+      const ensureProfile = async () => {
+        try {
+          const snapshot = await getDoc(profileDocRef);
+          if (!snapshot.exists()) {
+            await setDoc(
+              profileDocRef,
+              {
+                favorites: [],
+                votes: {},
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+              },
+              { merge: false }
+            );
+          }
+        } catch (creationError) {
+          console.error('Failed to ensure profile document', creationError);
+          setError('Unable to access your remix profile.');
+        }
+      };
+
+      void ensureProfile();
+
+      unsubUserDoc = onSnapshot(
+        profileDocRef,
+        (docSnapshot) => {
           if (canceled) {
             return;
           }
 
-          const nextStats: Record<string, RemixStats> = {};
-          snapshot.forEach((docSnapshot) => {
-            const data = docSnapshot.data() as Partial<RemixStats>;
-            nextStats[docSnapshot.id] = {
-              upvotes: Number(data.upvotes ?? 0),
-              downvotes: Number(data.downvotes ?? 0)
-            };
-          });
-          setStats(nextStats);
-          statsLoaded = true;
+          const data = docSnapshot.data() as { favorites?: string[]; votes?: VoteMap } | undefined;
+          setFavorites(data?.favorites ?? []);
+          setVotes(data?.votes ?? {});
+          profileLoaded = true;
           markLoaded();
         },
-        (statsError) => {
+        (subscriptionError) => {
           if (canceled) {
             return;
           }
 
-          statsLoaded = true;
+          console.warn('Failed to subscribe to profile document', subscriptionError);
+          setFavorites([]);
+          setVotes({});
+          profileLoaded = true;
           markLoaded();
-          console.warn('Failed to subscribe to remix stats', statsError);
-          if (isFirebaseError(statsError) && statsError.code === 'permission-denied') {
-            setError('You do not have permission to view community vote totals yet.');
+          if (isFirebaseError(subscriptionError) && subscriptionError.code === 'permission-denied') {
+            setError('You do not have permission to access your remix profile.');
           } else {
-            setError('Unable to load community votes right now.');
+            setError('Unable to load your remix profile right now.');
           }
         }
       );
-    } catch (statsInitError) {
-      console.warn('Unable to start remix stats listener', statsInitError);
-      statsLoaded = true;
-      markLoaded();
-      if (isFirebaseError(statsInitError) && statsInitError.code === 'permission-denied') {
-        setError('You do not have permission to view community vote totals yet.');
-      } else {
-        setError('Unable to load community votes right now.');
-      }
-    }
-
-    if (user) {
-      try {
-        const profileDocRef = doc(firestore, 'profiles', user.uid);
-        unsubUserDoc = onSnapshot(
-          profileDocRef,
-          (docSnapshot) => {
-            if (canceled) {
-              return;
-            }
-
-            const data = docSnapshot.data() as { favorites?: string[]; votes?: VoteMap } | undefined;
-            setFavorites(data?.favorites ?? []);
-            setVotes(data?.votes ?? {});
-            profileLoaded = true;
-            markLoaded();
-          },
-          (subscriptionError) => {
-            if (canceled) {
-              return;
-            }
-
-            console.warn('Failed to subscribe to profile document', subscriptionError);
-            setFavorites([]);
-            setVotes({});
-            profileLoaded = true;
-            markLoaded();
-            if (isFirebaseError(subscriptionError) && subscriptionError.code === 'permission-denied') {
-              setError('You do not have permission to access your remix profile.');
-            } else {
-              setError('Unable to load your remix profile right now.');
-            }
-          }
-        );
-      } catch (profileInitError) {
-        console.warn('Unable to start profile listener', profileInitError);
-        setFavorites([]);
-        setVotes({});
-        profileLoaded = true;
-        markLoaded();
-        if (isFirebaseError(profileInitError) && profileInitError.code === 'permission-denied') {
-          setError('You do not have permission to access your remix profile.');
-        } else {
-          setError('Unable to load your remix profile right now.');
-        }
-      }
     } else {
       setFavorites([]);
       setVotes({});
@@ -179,37 +128,8 @@ export function RemixDataProvider({ children }: { children: ReactNode }) {
     return () => {
       canceled = true;
       unsubUserDoc?.();
-      unsubStats?.();
     };
   }, [firestore, isConfigured, user]);
-
-  const adjustStats = useCallback((remixId: string, previousVote?: VoteValue, nextVote?: VoteValue) => {
-    setStats((current) => {
-      const currentStats = current[remixId] ?? defaultStats;
-      let { upvotes, downvotes } = currentStats;
-
-      if (previousVote === 'up') {
-        upvotes = Math.max(0, upvotes - 1);
-      }
-
-      if (previousVote === 'down') {
-        downvotes = Math.max(0, downvotes - 1);
-      }
-
-      if (nextVote === 'up') {
-        upvotes += 1;
-      }
-
-      if (nextVote === 'down') {
-        downvotes += 1;
-      }
-
-      return {
-        ...current,
-        [remixId]: { upvotes, downvotes }
-      };
-    });
-  }, []);
 
   const toggleFavorite = useCallback(
     async (remixId: string) => {
@@ -263,64 +183,79 @@ export function RemixDataProvider({ children }: { children: ReactNode }) {
       const previousVote = previousVotes[remixId];
       const isSameDirection = previousVote === direction;
       const nextVote = isSameDirection ? undefined : direction;
-      const updatedVotes: VoteMap = { ...previousVotes };
+      const optimisticVotes: VoteMap = { ...previousVotes };
 
       if (nextVote) {
-        updatedVotes[remixId] = nextVote;
+        optimisticVotes[remixId] = nextVote;
       } else {
-        delete updatedVotes[remixId];
+        delete optimisticVotes[remixId];
       }
 
-      setVotes(updatedVotes);
-      adjustStats(remixId, previousVote, nextVote);
-
+      setVotes(optimisticVotes);
       try {
         const profileDocRef = doc(firestore, 'profiles', user.uid);
-        const statsDocRef = doc(firestore, 'remixStats', remixId);
+        const remixDocRef = doc(firestore, 'remixes', remixId);
 
-        await runTransaction(firestore, async (transaction) => {
-          transaction.set(profileDocRef, { votes: updatedVotes }, { merge: true });
+        const committedVotes = await runTransaction(firestore, async (transaction) => {
+          const remixSnapshot = await transaction.get(remixDocRef);
+          if (!remixSnapshot.exists()) {
+            throw new Error('Remix not available in Firestore');
+          }
 
-          const statsSnapshot = await transaction.get(statsDocRef);
-          const statsData = statsSnapshot.exists()
-            ? (statsSnapshot.data() as RemixStats)
-            : defaultStats;
+          const profileSnapshot = await transaction.get(profileDocRef);
+          const firestoreVotes = profileSnapshot.exists()
+            ? ((profileSnapshot.data() as { votes?: VoteMap }).votes ?? {})
+            : {};
 
-          let { upvotes, downvotes } = statsData;
+          const previousVoteInStore = firestoreVotes[remixId];
+          const isSameInStore = previousVoteInStore === direction;
+          const nextVoteInStore = isSameInStore ? undefined : direction;
 
-          if (previousVote === 'up') {
+          const updatedVotesInStore: VoteMap = { ...firestoreVotes };
+          if (nextVoteInStore) {
+            updatedVotesInStore[remixId] = nextVoteInStore;
+          } else {
+            delete updatedVotesInStore[remixId];
+          }
+
+          const data = remixSnapshot.data() as {
+            upvotes?: number;
+            downvotes?: number;
+          };
+
+          let upvotes = Number(data.upvotes ?? 0);
+          let downvotes = Number(data.downvotes ?? 0);
+
+          if (previousVoteInStore === 'up') {
             upvotes = Math.max(0, upvotes - 1);
           }
 
-          if (previousVote === 'down') {
+          if (previousVoteInStore === 'down') {
             downvotes = Math.max(0, downvotes - 1);
           }
 
-          if (nextVote === 'up') {
+          if (nextVoteInStore === 'up') {
             upvotes += 1;
           }
 
-          if (nextVote === 'down') {
+          if (nextVoteInStore === 'down') {
             downvotes += 1;
           }
 
-          transaction.set(
-            statsDocRef,
-            {
-              upvotes,
-              downvotes
-            },
-            { merge: true }
-          );
+          transaction.set(remixDocRef, { upvotes, downvotes }, { merge: true });
+          transaction.set(profileDocRef, { votes: updatedVotesInStore }, { merge: true });
+
+          return updatedVotesInStore;
         });
+
+        setVotes(committedVotes);
       } catch (voteError) {
         console.error('Failed to update vote', voteError);
         setVotes(previousVotes);
-        adjustStats(remixId, nextVote, previousVote);
         setError('Unable to record your vote. Please try again.');
       }
     },
-    [adjustStats, firestore, isConfigured, user, votes]
+    [firestore, isConfigured, user, votes]
   );
 
   const isFavorite = useCallback(
@@ -333,12 +268,23 @@ export function RemixDataProvider({ children }: { children: ReactNode }) {
     [votes]
   );
 
+  const getAggregates = useCallback(
+    (remixId: string): { upvotes: number; downvotes: number } => {
+      const remix = remixes.find((item) => item.id === remixId);
+      if (!remix) {
+        return { upvotes: 0, downvotes: 0 };
+      }
+      return { upvotes: remix.upvotes, downvotes: remix.downvotes };
+    },
+    [remixes]
+  );
+
   const getNetVotes = useCallback(
     (remixId: string): number => {
-      const remixStats = stats[remixId] ?? defaultStats;
-      return remixStats.upvotes - remixStats.downvotes;
+      const { upvotes, downvotes } = getAggregates(remixId);
+      return upvotes - downvotes;
     },
-    [stats]
+    [getAggregates]
   );
 
   const clearError = useCallback(() => setError(null), []);
@@ -347,7 +293,6 @@ export function RemixDataProvider({ children }: { children: ReactNode }) {
     () => ({
       favorites,
       votes,
-      stats,
       loading,
       error,
       isFavorite,
@@ -355,9 +300,10 @@ export function RemixDataProvider({ children }: { children: ReactNode }) {
       toggleFavorite,
       vote,
       getNetVotes,
+      getAggregates,
       clearError
     }),
-    [clearError, error, favorites, getNetVotes, getVote, isFavorite, loading, stats, toggleFavorite, vote, votes]
+    [clearError, error, favorites, getAggregates, getNetVotes, getVote, isFavorite, loading, toggleFavorite, vote, votes]
   );
 
   return <RemixDataContext.Provider value={value}>{children}</RemixDataContext.Provider>;

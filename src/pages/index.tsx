@@ -44,7 +44,7 @@ export default function Home() {
       <main className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-lg p-6 text-center">
           <Image src={'/logo.png'} alt="BronBeats Logo" width={200} height={200} className="mx-auto mb-4 rounded-2xl" />
-          <form onSubmit={handleSearch} className="mt-8 flex flex-col items-center gap-6 font-main">
+          <form onSubmit={handleSearch} className="mt-8 flex flex-col items-center gap-6 ">
             <div className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-full border-[1.5px] border-slate-300 bg-white px-4 py-2 shadow-sm group focus-within:border-lakersPurple-600">
               <div className="pointer-events-none my-0.5 text-gray-500 transition-colors group-focus-within:text-lakersPurple-600">
                 <Search size={20} />
@@ -53,7 +53,7 @@ export default function Home() {
                 className="h-8 flex-1 border-none bg-transparent text-base font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none caret-lakersPurple-600"
                 value={searchQuery}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value)}
-                placeholder="Search Remixes by Song, Artist, or Tag..."
+                placeholder="Search Remixes"
                 aria-label="Search remixes"
               />
             </div>
@@ -70,7 +70,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="w-full p-4 text-center text-sm font-semibold font-main uppercase">
+      <footer className="w-full p-4 text-center text-sm font-semibold  uppercase">
         The ultimate collection of LeBron James remix songs
       </footer>
     </div>

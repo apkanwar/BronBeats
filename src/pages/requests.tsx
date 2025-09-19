@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
 import { NextSeo } from 'next-seo';
-import { CheckCircle2, Loader2, Send, XCircle } from 'lucide-react';
+import { CheckCircle2, Lightbulb, Loader2, Send, XCircle } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import Navbar from '@/components/navbar';
 import { firebaseServices } from '@/lib/firebase/client';
@@ -110,10 +110,16 @@ export default function RequestsPage() {
       />
       <Navbar />
       <main className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 pb-16 pt-12">
-        <header className="text-center">
-          <h1 className="font-headings text-4xl font-bold text-lakersPurple-600 md:text-5xl">Request a Remix</h1>
-          <p className="mt-4 font-main text-base text-slate-600">
-            Found an iconic LeBron edit we should feature? Drop the link below and our team will check it out.
+        <header className="flex flex-col items-center gap-4 text-center">
+          <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-5 py-2 text-lakersPurple-600">
+            <Lightbulb size={20} />
+            <span className=" font-semibold uppercase tracking-wide">Request a Remix</span>
+          </div>
+          <p className="max-w-2xl text-base text-slate-600">
+            Found an iconic LeBron edit we should feature?
+          </p>
+          <p className="max-w-2xl text-base text-slate-600">
+            Drop the link below and our team will check it out.
           </p>
         </header>
 

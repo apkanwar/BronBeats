@@ -4,7 +4,8 @@ import { NextSeo } from 'next-seo';
 import { Search, XCircle } from 'lucide-react';
 import Navbar from '@/components/navbar';
 import RemixCard from '@/components/remix-card';
-import { remixes, searchRemixes } from '@/data/remixes';
+import { searchRemixes } from '@/data/remixes';
+import { useRemixLibrary } from '@/context/RemixLibraryContext';
 
 function getQueryValue(value: string | string[] | undefined): string {
   if (!value) {
@@ -16,6 +17,7 @@ function getQueryValue(value: string | string[] | undefined): string {
 
 export default function RemixesPage() {
   const router = useRouter();
+  const { remixes, loading: remixesLoading, error: remixesError } = useRemixLibrary();
   const [searchInput, setSearchInput] = useState<string>('');
 
   const searchQuery = useMemo(() => getQueryValue(router.query.search), [router.query.search]);
@@ -24,7 +26,7 @@ export default function RemixesPage() {
     setSearchInput(searchQuery);
   }, [searchQuery]);
 
-  const results = useMemo(() => searchRemixes(searchQuery), [searchQuery]);
+  const results = useMemo(() => searchRemixes(searchQuery, remixes), [remixes, searchQuery]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -51,15 +53,18 @@ export default function RemixesPage() {
         }}
       />
       <Navbar />
+
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 pb-16 pt-10">
         <header className="flex flex-col gap-6 text-center md:text-left">
-          <div>
-            <h1 className="font-headings text-4xl font-bold text-lakersPurple-600 md:text-5xl">All Remixes</h1>
-            <p className="mt-2 font-main text-lg text-slate-600">
-              Dig through the entire BronBeats vault. Filter by remix name, original song, or tags to find the exact
-              vibe you need.
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-5 py-2 text-lakersPurple-600">
+              <span className=" font-semibold uppercase tracking-wide">All Remixes</span>
+            </div>
+            <p className="text-base text-slate-600">
+              Dig through the entire BronBeats vault. Filter by remix name or tags to find the exact vibe you need.
             </p>
           </div>
+
           <form
             onSubmit={handleSubmit}
             className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-full border-[1.5px] border-slate-300 bg-white px-4 py-2 shadow-sm group focus-within:border-lakersPurple-600"
@@ -69,7 +74,7 @@ export default function RemixesPage() {
               className="h-12 flex-1 border-none bg-transparent text-base font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none caret-lakersPurple-600"
               value={searchInput}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-              placeholder="Search remixes by song, artist, or tag..."
+              placeholder="Search Remixes by Remix Name, OG Song or Song Artist"
               aria-label="Search remixes"
             />
             {searchQuery && (
@@ -89,14 +94,24 @@ export default function RemixesPage() {
               Search
             </button>
           </form>
-          <p className="font-main text-sm text-slate-500">
-            Showing {results.length} remix{results.length === 1 ? '' : 'es'}{' '}
-            {searchQuery ? `for "${searchQuery}"` : 'from the BronBeats library'}
+          <p className="text-sm text-slate-500">
+            {remixesLoading
+              ? 'Loading remixes from Firestore...'
+              : `Showing ${results.length} remix${results.length === 1 ? '' : 'es'} ${searchQuery ? `for "${searchQuery}"` : 'from the BronBeats library'
+              }`}
           </p>
+          {remixesError ? (
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">{remixesError}</p>
+          ) : null}
         </header>
 
         <section>
-          {results.length > 0 ? (
+          {remixesLoading ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+              <h2 className="text-2xl font-semibold text-slate-700">Loading Remixes...</h2>
+              <p className="text-base text-slate-500">Fetching the Latest BronBeats</p>
+            </div>
+          ) : results.length > 0 ? (
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               {results.map((remix) => (
                 <RemixCard key={remix.id} remix={remix} />
@@ -104,8 +119,8 @@ export default function RemixesPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-              <h2 className="font-headings text-2xl font-semibold text-slate-700">No remixes found</h2>
-              <p className="font-main text-base text-slate-500">
+              <h2 className="text-2xl font-semibold text-slate-700">No Remixes Found</h2>
+              <p className="text-base text-slate-500">
                 Try a different search term or explore by tags like <span className="font-semibold">highlight</span>,
                 <span className="font-semibold"> trap</span>, or <span className="font-semibold"> anthem</span>.
               </p>
