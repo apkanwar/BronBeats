@@ -15,6 +15,8 @@ export type Remix = {
   downvotes: number;
   createdAt?: string;
   updatedAt?: string;
+  ogSong?: string;
+  igLink?: string;
 };
 
 export function remixesFromVimeo(videos: FetchVimeoVideo[]): Remix[] {
@@ -72,6 +74,8 @@ type FirestoreRemixData = {
   downvotes?: number;
   createdAt?: string;
   updatedAt?: string;
+  ogSong?: string;
+  igLink?: string;
 };
 
 function normalizeRemix(id: string, data: FirestoreRemixData): Remix | null {
@@ -91,7 +95,9 @@ function normalizeRemix(id: string, data: FirestoreRemixData): Remix | null {
     upvotes: Number(data.upvotes ?? 0),
     downvotes: Number(data.downvotes ?? 0),
     createdAt: data.createdAt,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    ogSong: data.ogSong,
+    igLink: data.igLink
   } satisfies Remix;
 }
 
@@ -103,7 +109,7 @@ export function searchRemixes(query: string, remixList: Remix[] = []): Remix[] {
   const lowered = query.trim().toLowerCase();
 
   return remixList.filter((remix) => {
-    const haystack = [remix.remixName, remix.description, ...remix.tags]
+    const haystack = [remix.remixName, remix.description, remix.ogSong ?? '', ...remix.tags]
       .join(' ')
       .toLowerCase();
 

@@ -1,9 +1,9 @@
 import { NextSeo } from 'next-seo';
 import Navbar from '@/components/navbar';
-import RemixCard from '@/components/remix-card';
 import { useAuth } from '@/context/AuthContext';
 import { useRemixData } from '@/context/RemixDataContext';
 import { useRemixLibrary } from '@/context/RemixLibraryContext';
+import MiniRemixCard from '@/components/mini-remix-card';
 
 export default function FavoritesPage() {
   const { isAuthenticated, initializing } = useAuth();
@@ -39,7 +39,7 @@ export default function FavoritesPage() {
         ) : (
           <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {favoriteRemixes.map((remix) => (
-              <RemixCard key={remix.id} remix={remix} />
+              <MiniRemixCard key={remix.id} remix={remix} />
             ))}
           </section>
         )}

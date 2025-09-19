@@ -104,7 +104,7 @@ export default function Navbar(): ReactElement {
             {isAuthenticated ? (
               <button onClick={handleAuthClick}
                 disabled={initializing}
-                className="flex flex-row justify-center gap-2 bg-google rounded-full font-main p-[2px] text-sm">
+                className="flex flex-row justify-center gap-2 bg-google rounded-full font-main p-[2px]">
                 <span className="bg-white rounded-full flex items-center gap-2 px-4 py-1 hover:bg-gray-100 w-full">
                   Sign Out
                 </span>
