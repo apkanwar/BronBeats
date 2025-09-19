@@ -10,6 +10,7 @@
     "postbuild": "next-sitemap"
   },
   "dependencies": {
+    "firebase": "^12.3.0",
     "lucide-react": "^0.544.0",
     "next": "^15.5.3",
     "next-seo": "^6.8.0",

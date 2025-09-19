@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { Search } from 'lucide-react';
 import Navbar from '@/components/navbar';
+import Image from 'next/image';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -13,19 +14,18 @@ export default function Home() {
     if (!searchQuery.trim()) {
       return;
     }
-
-    void router.push(`/songs?search=${encodeURIComponent(searchQuery.trim())}`);
+    void router.push(`/remixes?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex h-screen flex-col">
       <NextSeo
         title="BronBeats | The beats you see on IG"
         description="Rank your favorite Lebron James Remixes"
         canonical="https://www.bronbeats.com/"
         openGraph={{
           url: 'https://www.bronbeats.com/',
-          title: "BronBeats | The beats you see on IG",
+          title: 'BronBeats | The beats you see on IG',
           description: 'Rank your favorite Lebron James Remixes',
           images: [
             {
@@ -41,26 +41,27 @@ export default function Home() {
       />
 
       <Navbar />
-      <main className="flex-1 flex items-center justify-center px-4">
+      <main className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-lg p-6 text-center">
-          <h1 className="mb-8 text-4xl font-bold text-blue-600 font-headings">LeBron Remix</h1>
-          <form onSubmit={handleSearch} className="flex flex-col items-center gap-6 font-main">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search LeBron Remixes..."
-                value={searchQuery}
-                className="w-full p-3 px-8 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value)}
-              />
-              <div className="pointer-events-none absolute right-8 top-3 my-0.5 text-gray-500">
+          <Image src={'/logo.png'} alt="BronBeats Logo" width={200} height={200} className="mx-auto mb-4 rounded-2xl" />
+          <form onSubmit={handleSearch} className="mt-8 flex flex-col items-center gap-6 font-main">
+            <div className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-full border-[1.5px] border-slate-300 bg-white px-4 py-2 shadow-sm group focus-within:border-lakersPurple-600">
+              <div className="pointer-events-none my-0.5 text-gray-500 transition-colors group-focus-within:text-lakersPurple-600">
                 <Search size={20} />
               </div>
+              <input
+                className="h-8 flex-1 border-none bg-transparent text-base font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none caret-lakersPurple-600"
+                value={searchQuery}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchQuery(event.target.value)}
+                placeholder="Search Remixes by Song, Artist, or Tag..."
+                aria-label="Search remixes"
+              />
             </div>
 
-            <div className="flex gap-3 font-semibold">
-              <button type="submit"
-                className="px-6 py-2 bg-gray-100 border border-gray-300 rounded-full hover:bg-gray-200 text-sm"
+            <div className="flex flex-wrap items-center justify-center gap-3 font-semibold">
+              <button
+                type="submit"
+                className="rounded-full border border-gray-300 bg-gray-100 px-6 py-2 text-sm hover:bg-gray-200"
               >
                 Search Remixes
               </button>
@@ -69,7 +70,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="w-full p-4 text-sm text-center uppercase font-semibold font-main">
+      <footer className="w-full p-4 text-center text-sm font-semibold font-main uppercase">
         The ultimate collection of LeBron James remix songs
       </footer>
     </div>
