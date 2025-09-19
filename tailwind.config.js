@@ -51,6 +51,9 @@ module.exports = {
         headings: ['Rubik', 'sans-serif'],
         main: ['Montserrat', 'sans-serif'],
         numbers: ['Inter', 'sans-serif'],
+      },
+      backgroundImage: {
+        'google': 'linear-gradient(to right, #4285F4, #34A853, #FBBC05, #EA4335)',
       }
     }
   },
