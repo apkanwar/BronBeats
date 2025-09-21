@@ -129,9 +129,9 @@ export default function RequestsPage() {
         }}
       />
       <Navbar />
-      <main className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 pb-16 pt-12">
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 pb-16 pt-12 sm:px-6">
         <header className="flex flex-col items-center gap-4 text-center">
-          <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-5 py-2 text-lakersPurple-600">
+          <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-4 py-2 text-lakersPurple-600 sm:px-5">
             <Lightbulb size={20} />
             <span className=" font-semibold uppercase tracking-wide">Request a Remix</span>
           </div>
@@ -143,7 +143,7 @@ export default function RequestsPage() {
           </p>
         </header>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <form className="space-y-6" onSubmit={handleSubmit} noValidate>
             <div className="grid gap-6 md:grid-cols-2">
               <div className="flex flex-col gap-2">

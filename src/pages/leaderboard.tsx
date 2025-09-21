@@ -37,9 +37,9 @@ export default function LeaderboardPage() {
       />
       <Navbar />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 pb-16 pt-10">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-10 sm:px-6">
         <header className="flex flex-col items-center gap-4 text-center">
-          <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-5 py-2 text-lakersPurple-600">
+          <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-4 py-2 text-lakersPurple-600 sm:px-5">
             <Trophy size={20} />
             <span className=" font-semibold uppercase tracking-wide">Leaderboard</span>
           </div>
@@ -55,7 +55,7 @@ export default function LeaderboardPage() {
         </header>
 
         <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="grid grid-cols-12 border-b border-slate-200 px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="hidden grid-cols-12 border-b border-slate-200 px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid">
             <span className="col-span-6 text-left">Remix</span>
             <span className="col-span-2 text-center">Upvotes</span>
             <span className="col-span-2 text-center">Downvotes</span>
@@ -70,23 +70,40 @@ export default function LeaderboardPage() {
               {leaderboard.map(({ remix, upvotes, downvotes, net }, index) => (
                 <li
                   key={remix.id}
-                  className={`grid grid-cols-12 items-center px-6 py-5 text-sm transition ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
-                    }`}
+                  className={`flex flex-col gap-4 px-4 py-5 text-sm transition md:grid md:grid-cols-12 md:items-center md:gap-0 md:px-6 ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
+                  }`}
                 >
-                  <div className="col-span-6 flex items-center gap-4">
-                    <span className=" text-lg font-bold text-lakersPurple-600">#{index + 1}</span>
-                    <div>
-                      <Link
-                        href={`/remixes/${remix.id}`}
-                        className=" text-lg font-semibold text-slate-900 hover:text-lakersPurple-600"
-                      >
-                        {remix.remixName}
-                      </Link>
+                  <div className="flex items-center gap-4 md:col-span-6">
+                    <span className="text-lg font-bold text-lakersPurple-600">#{index + 1}</span>
+                    <Link
+                      href={`/remixes/${remix.id}`}
+                      className="text-base font-semibold text-slate-900 transition hover:text-lakersPurple-600 md:text-lg"
+                    >
+                      {remix.remixName}
+                    </Link>
+                  </div>
+
+                  <div className="grid w-full grid-cols-3 gap-3 text-center text-base font-semibold md:col-span-6 md:grid-cols-3 md:gap-0">
+                    <div className="rounded-xl bg-emerald-50 px-3 py-2 text-emerald-600 md:rounded-none md:bg-transparent md:px-0 md:py-0">
+                      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 md:hidden">
+                        Upvotes
+                      </span>
+                      {upvotes}
+                    </div>
+                    <div className="rounded-xl bg-red-50 px-3 py-2 text-red-600 md:rounded-none md:bg-transparent md:px-0 md:py-0">
+                      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 md:hidden">
+                        Downvotes
+                      </span>
+                      {downvotes}
+                    </div>
+                    <div className="rounded-xl bg-slate-100 px-3 py-2 text-slate-800 md:rounded-none md:bg-transparent md:px-0 md:py-0">
+                      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 md:hidden">
+                        Net
+                      </span>
+                      {net}
                     </div>
                   </div>
-                  <span className="col-span-2 text-center font-semibold text-green-600">{upvotes}</span>
-                  <span className="col-span-2 text-center font-semibold text-red-600">{downvotes}</span>
-                  <span className="col-span-2 text-center font-semibold text-slate-800">{net}</span>
                 </li>
               ))}
             </ul>

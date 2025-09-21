@@ -41,10 +41,10 @@ export default function VotesPage() {
     <div className="min-h-screen bg-slate-50">
       <NextSeo title="Your Votes | BronBeats" />
       <Navbar />
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 pb-16 pt-10">
-        <header className="text-center md:text-left">
-          <h1 className="text-4xl font-bold text-lakersPurple-600 md:text-5xl">Your Votes</h1>
-          <p className="mt-2 text-base text-slate-600">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-10 sm:px-6">
+        <header className="space-y-2 text-center md:text-left">
+          <h1 className="text-3xl font-bold text-lakersPurple-600 sm:text-4xl md:text-5xl">Your Votes</h1>
+          <p className="text-base text-slate-600">
             Track which remixes you’ve boosted or dropped.
           </p>
         </header>

@@ -54,10 +54,10 @@ export default function RemixesPage() {
       />
       <Navbar />
 
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 pb-16 pt-10">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-16 pt-10 sm:px-6">
         <header className="flex flex-col gap-6 text-center md:text-left">
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-5 py-2 text-lakersPurple-600">
+            <div className="flex items-center gap-3 rounded-full bg-lakersPurple-100 px-4 py-2 text-lakersPurple-600 sm:px-5">
               <span className=" font-semibold uppercase tracking-wide">All Remixes</span>
             </div>
             <p className="text-base text-slate-600">
@@ -67,32 +67,36 @@ export default function RemixesPage() {
 
           <form
             onSubmit={handleSubmit}
-            className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-full border-[1.5px] border-slate-300 bg-white px-4 py-2 shadow-sm group focus-within:border-lakersPurple-600"
+            className="group mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-3xl border border-slate-300 bg-white/90 p-4 shadow-sm focus-within:border-lakersPurple-600 focus-within:ring-1 focus-within:ring-lakersPurple-200 sm:flex-row sm:items-center sm:gap-4 sm:rounded-full sm:p-2"
           >
-            <Search size={20} className="text-slate-500 transition-colors group-focus-within:text-lakersPurple-600" aria-hidden />
-            <input
-              className="h-12 flex-1 border-none bg-transparent text-base font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none caret-lakersPurple-600"
-              value={searchInput}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-              placeholder="Search Remixes by Remix Name, OG Song or Song Artist"
-              aria-label="Search remixes"
-            />
-            {searchQuery && (
+            <div className="flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-2 shadow-sm sm:flex-1 sm:bg-transparent sm:px-3 sm:py-0 sm:shadow-none">
+              <Search size={20} className="text-slate-500 transition-colors group-focus-within:text-lakersPurple-600" aria-hidden />
+              <input
+                className="h-10 flex-1 border-none bg-transparent text-base font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none caret-lakersPurple-600"
+                value={searchInput}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
+                placeholder="Search Remixes by Remix Name, OG Song or Song Artist"
+                aria-label="Search remixes"
+              />
+            </div>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-200"
+                >
+                  <XCircle size={14} />
+                  Clear
+                </button>
+              ) : null}
               <button
-                type="button"
-                onClick={handleClear}
-                className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-200"
+                type="submit"
+                className="inline-flex items-center justify-center rounded-full bg-lakersPurple-600 px-6 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-lakersPurple-700"
               >
-                <XCircle size={14} />
-                Clear
+                Search
               </button>
-            )}
-            <button
-              type="submit"
-              className="rounded-full bg-lakersPurple-600 px-6 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-lakersPurple-700"
-            >
-              Search
-            </button>
+            </div>
           </form>
           <p className="text-sm text-slate-500">
             {remixesLoading

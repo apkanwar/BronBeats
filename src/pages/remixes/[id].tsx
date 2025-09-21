@@ -153,13 +153,13 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
         }}
       />
       <Navbar />
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 pb-16 pt-10">
-        <header className="flex flex-col gap-4">
-          <p className="text-sm uppercase tracking-widest text-lakersPurple-600">Remix Spotlight</p>
-          <h1 className="text-4xl font-bold text-slate-900 md:text-5xl">{remixData.remixName}</h1>
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-16 pt-10 sm:px-6">
+        <header className="flex flex-col gap-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-lakersPurple-600 sm:text-sm">Remix Spotlight</p>
+          <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl">{remixData.remixName}</h1>
         </header>
 
-        <section className="grid gap-10 lg:grid-cols-[2fr,1fr]">
+        <section className="grid gap-8 lg:grid-cols-[2fr,1fr] lg:gap-12">
           <div className="flex flex-col gap-6">
             <div className="aspect-video overflow-hidden rounded-2xl border border-slate-200 shadow-lg">
               <iframe
@@ -178,8 +178,8 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
               </div>
             ) : null}
 
-            <div className="flex flex-wrap justify-between items-center gap-3">
-              <div className='flex flex-row gap-3'>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <div className='flex flex-wrap gap-3'>
                 <button
                   type="button"
                   onClick={() => void handleVote('up')}
@@ -211,10 +211,11 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
               <button
                 type="button"
                 onClick={() => void handleFavorite()}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${favorite
-                  ? 'border-pink-600 bg-pink-600 text-white'
-                  : 'border-slate-300 bg-white text-slate-700 hover:border-pink-600 hover:text-pink-600'
-                  } ${remixDataLoading ? 'cursor-not-allowed opacity-60' : ''}`}
+                className={`inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  favorite
+                    ? 'border-pink-600 bg-pink-600 text-white'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-pink-600 hover:text-pink-600'
+                } ${remixDataLoading ? 'cursor-not-allowed opacity-60' : ''}`}
                 disabled={remixDataLoading}
               >
                 <Heart size={18} />

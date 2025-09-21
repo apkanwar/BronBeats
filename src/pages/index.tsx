@@ -18,7 +18,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-slate-50">
       <NextSeo
         title="BronBeats | The beats you see on IG"
         description="Rank your favorite Lebron James Remixes"
@@ -41,11 +41,18 @@ export default function Home() {
       />
 
       <Navbar />
-      <main className="flex flex-1 items-center justify-center px-4">
-        <div className="w-full max-w-lg p-6 text-center">
-          <Image src={'/logo.png'} alt="BronBeats Logo" width={200} height={200} className="mx-auto mb-4 rounded-2xl" />
-          <form onSubmit={handleSearch} className="mt-8 flex flex-col items-center gap-6 ">
-            <div className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-full border-[1.5px] border-slate-300 bg-white px-4 py-2 shadow-sm group focus-within:border-lakersPurple-600">
+      <main className="flex flex-1 items-center justify-center px-4 pb-12 pt-6 sm:px-6 md:pb-16">
+        <div className="w-full max-w-xl rounded-3xl bg-white/80 p-6 text-center shadow-sm backdrop-blur md:p-10">
+          <Image
+            src={'/logo.png'}
+            alt="BronBeats Logo"
+            width={180}
+            height={180}
+            className="mx-auto mb-4 rounded-2xl sm:mb-6"
+            priority
+          />
+          <form onSubmit={handleSearch} className="mt-6 flex flex-col items-center gap-6">
+            <div className="group mx-auto flex w-full max-w-3xl items-center gap-3 rounded-full border-[1.5px] border-slate-300 bg-white px-4 py-2 shadow-sm focus-within:border-lakersPurple-600">
               <div className="pointer-events-none my-0.5 text-gray-500 transition-colors group-focus-within:text-lakersPurple-600">
                 <Search size={20} />
               </div>
@@ -70,7 +77,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="w-full p-4 text-center text-sm font-semibold  uppercase">
+      <footer className="w-full px-4 pb-6 pt-4 text-center text-xs font-semibold uppercase text-slate-600 sm:text-sm">
         The ultimate collection of LeBron James remix songs
       </footer>
     </div>
