@@ -1,4 +1,5 @@
 import { useState, FormEvent, useMemo } from 'react';
+import Link from 'next/link';
 import type { GetStaticPaths, GetStaticProps } from 'next';
 import Image from 'next/image';
 import { NextSeo } from 'next-seo';
@@ -35,6 +36,10 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
   const { remixes: libraryRemixes } = useRemixLibrary();
   const liveRemix = useMemo(() => libraryRemixes.find((item) => item.id === remix.id), [libraryRemixes, remix.id]);
   const remixData = liveRemix ?? remix;
+  const relatedRemixes = useMemo(
+    () => libraryRemixes.filter((item) => item.id !== remix.id).slice(0, 3),
+    [libraryRemixes, remix.id]
+  );
 
   const { comments, loading: commentsLoading, error: commentsError, addComment, isFirestoreBacked } =
     useRemixComments(remixData.id);
@@ -179,8 +184,8 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
                   type="button"
                   onClick={() => void handleVote('up')}
                   className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${currentVote === 'up'
-                      ? 'border-lakersPurple-600 bg-lakersPurple-600 text-white'
-                      : 'border-slate-300 bg-white text-slate-700 hover:border-lakersPurple-600 hover:text-lakersPurple-600'
+                    ? 'border-lakersPurple-600 bg-lakersPurple-600 text-white'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-lakersPurple-600 hover:text-lakersPurple-600'
                     } ${remixDataLoading ? 'cursor-not-allowed opacity-60' : ''}`}
                   disabled={remixDataLoading}
                 >
@@ -193,8 +198,8 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
                   type="button"
                   onClick={() => void handleVote('down')}
                   className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${currentVote === 'down'
-                      ? 'border-red-600 bg-red-600 text-white'
-                      : 'border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-600'
+                    ? 'border-red-600 bg-red-600 text-white'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-red-500 hover:text-red-600'
                     } ${remixDataLoading ? 'cursor-not-allowed opacity-60' : ''}`}
                   disabled={remixDataLoading}
                 >
@@ -207,8 +212,8 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
                 type="button"
                 onClick={() => void handleFavorite()}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${favorite
-                    ? 'border-pink-600 bg-pink-600 text-white'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-pink-600 hover:text-pink-600'
+                  ? 'border-pink-600 bg-pink-600 text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-pink-600 hover:text-pink-600'
                   } ${remixDataLoading ? 'cursor-not-allowed opacity-60' : ''}`}
                 disabled={remixDataLoading}
               >
@@ -292,6 +297,54 @@ export default function RemixDetailPage({ remix }: RemixPageProps) {
               )}
             </section>
           </div>
+
+          <aside className="flex flex-col gap-6">
+            {/* <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-2xl font-semibold text-slate-900">Remix Stats</h2>
+              <div className="space-y-3 text-sm text-slate-600">
+                <p>
+                  <span className="font-semibold text-slate-800">Upvotes:</span> {upvotes}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-800">Downvotes:</span> {downvotes}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-800">Net Score:</span> {netVotes}
+                </p>
+              </div>
+            </div> */}
+            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-2xl font-semibold text-slate-900">Related Videos</h2>
+              {relatedRemixes.length === 0 ? (
+                <p className="text-sm text-slate-500">More remixes will appear here as they’re added.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {relatedRemixes.map((item) => (
+                    <li key={item.id} className="flex items-center gap-3">
+                      <Link href={`/remixes/${item.id}`} className="group relative h-12 w-20 overflow-hidden rounded-lg">
+                        <Image
+                          src={item.thumbnailUrl}
+                          alt={`${item.remixName} thumbnail`}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                      </Link>
+                      <div className="flex-1">
+                        <Link
+                          href={`/remixes/${item.id}`}
+                          className="text-sm font-semibold text-slate-800 hover:text-lakersGold-600"
+                        >
+                          {item.remixName}
+                        </Link>
+                        <p className="text-xs text-slate-500 line-clamp-2">{item.description || 'No description provided.'}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </aside>
         </section>
       </main>
     </div>
