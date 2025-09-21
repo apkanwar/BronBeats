@@ -1,14 +1,13 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from 'react';
 import { NextSeo } from 'next-seo';
 import { CheckCircle2, Lightbulb, Loader2, Send, XCircle } from 'lucide-react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import Navbar from '@/components/navbar';
-import { firebaseServices } from '@/lib/firebase/client';
 
 const initialFormState = {
   name: '',
   email: '',
   remixUrl: '',
+  originalSong: '',
   notes: ''
 };
 
@@ -17,14 +16,18 @@ type FormState = typeof initialFormState;
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
 export default function RequestsPage() {
-  const { firestore, isConfigured } = firebaseServices;
   const [formState, setFormState] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string | null }>({
+    type: null,
+    message: null
+  });
+  const formRef = useRef<HTMLFormElement | null>(null);
 
-  const isSubmitDisabled = useMemo(() => submitting || !isConfigured, [isConfigured, submitting]);
+  const accessKey = "35557c5c-f048-4787-a560-fe6daa91c2f5"
+
+  const isSubmitDisabled = useMemo(() => submitting || !accessKey, [accessKey, submitting]);
 
   const validate = (state: FormState): FormErrors => {
     const nextErrors: FormErrors = {};
@@ -56,14 +59,12 @@ export default function RequestsPage() {
       ...current,
       [field]: undefined
     }));
-    setSubmitError(null);
-    setSubmitSuccess(null);
+    setStatus({ type: null, message: null });
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitError(null);
-    setSubmitSuccess(null);
+    setStatus({ type: null, message: null });
 
     const validationErrors = validate(formState);
     setErrors(validationErrors);
@@ -72,27 +73,46 @@ export default function RequestsPage() {
       return;
     }
 
-    if (!firestore || !isConfigured) {
-      setSubmitError('Remix requests are unavailable right now. Please try again later.');
+    if (!accessKey) {
+      setStatus({ type: 'error', message: 'Web3Forms access key is missing. Please try again later.' });
       return;
     }
+
+    const body = {
+      access_key: accessKey,
+      subject: 'New BronBeats Remix Request',
+      name: formState.name.trim(),
+      email: formState.email.trim() || undefined,
+      remix_url: formState.remixUrl.trim(),
+      original_song: formState.originalSong.trim() || undefined,
+      notes: formState.notes.trim() || undefined,
+      from_name: 'BronBeats Request Form'
+    };
 
     setSubmitting(true);
 
     try {
-      await addDoc(collection(firestore, 'remixRequests'), {
-        name: formState.name.trim(),
-        email: formState.email.trim() || null,
-        remixUrl: formState.remixUrl.trim(),
-        notes: formState.notes.trim() || null,
-        submittedAt: serverTimestamp()
+      const json = JSON.stringify(body);
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: json
       });
 
-      setFormState(initialFormState);
-      setSubmitSuccess('Thanks! We will review your remix soon.');
-    } catch (error) {
-      console.error('Failed to submit remix request', error);
-      setSubmitError('Something went wrong while sending your request. Please try again.');
+      const data = await response.json();
+      if (data.success) {
+        setStatus({ type: 'success', message: 'Thanks! Your message was sent successfully.' });
+        setFormState(initialFormState);
+        formRef.current?.reset();
+      } else {
+        setStatus({ type: 'error', message: data.message || 'Something went wrong. Please try again.' });
+      }
+    } catch (err) {
+      console.error('Failed to submit remix request via Web3Forms', err);
+      setStatus({ type: 'error', message: 'Network error. Please check your connection and try again.' });
     } finally {
       setSubmitting(false);
     }
@@ -147,7 +167,7 @@ export default function RequestsPage() {
 
               <div className="flex flex-col gap-2">
                 <label htmlFor="request-email" className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-                  Email (optional)
+                  Email (O)
                 </label>
                 <input
                   id="request-email"
@@ -183,8 +203,22 @@ export default function RequestsPage() {
             </div>
 
             <div className="flex flex-col gap-2">
+              <label htmlFor="request-original-song" className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+                Original song name (O)
+              </label>
+              <input
+                id="request-original-song"
+                type="text"
+                value={formState.originalSong}
+                onChange={handleChange('originalSong')}
+                placeholder="e.g. Godspeed by Frank Ocean"
+                className="rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 shadow-sm focus:border-lakersPurple-600 focus:outline-none focus:ring-2 focus:ring-lakersPurple-100"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
               <label htmlFor="request-notes" className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-                Why it belongs on BronBeats (optional)
+                Why it belongs on BronBeats (O)
               </label>
               <textarea
                 id="request-notes"
@@ -196,17 +230,17 @@ export default function RequestsPage() {
               />
             </div>
 
-            {submitError ? (
+            {status.type === 'error' && status.message ? (
               <p className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">
                 <XCircle size={16} />
-                {submitError}
+                {status.message}
               </p>
             ) : null}
 
-            {submitSuccess ? (
+            {status.type === 'success' && status.message ? (
               <p className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
                 <CheckCircle2 size={16} />
-                {submitSuccess}
+                {status.message}
               </p>
             ) : null}
 
@@ -219,9 +253,9 @@ export default function RequestsPage() {
                 {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 Submit request
               </button>
-              {!isConfigured ? (
+              {!accessKey ? (
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Firebase configuration required to accept requests.
+                  Web3Forms access key missing.
                 </span>
               ) : null}
             </div>
