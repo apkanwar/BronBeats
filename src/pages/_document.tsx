@@ -5,7 +5,7 @@ export default function Document(): ReactElement {
   return (
     <Html lang="en">
       <Head>
-        <link rel="Shortcut Icon" href="logo.ico" />
+        <link rel="Shortcut Icon" href="logo.png" />
       </Head>
       <body>
         <Main />
