@@ -21,17 +21,9 @@ export default function RemixCard({ remix }: RemixCardProps) {
             priority={false}
           />
         </div>
-        <div className="flex flex-col px-5 py-4 text-left">
-          <header className="flex flex-row justify-between px-2">
-            <h3 className="text-xl font-semibold text-gray-900">{remix.remixName}</h3>
-          </header>
-          <div className="my-1 flex flex-wrap gap-2 text-sm font-headings">
-            {remix.tags.length > 0 && (
-              remix.tags.map((tag, i) => (
-                <h4 key={i} className="px-3 py-1 rounded-full text-dm-black bg-lakersGold-200 hover:bg-lakersGold-300 font-semibold"> {tag} </h4>
-              ))
-            )}
-          </div>
+        <div className="flex flex-col gap-2 px-5 py-4 text-left">
+          <h3 className="text-xl font-semibold text-gray-900">{remix.remixName}</h3>
+          <p className="text-gray-600 text-sm">{remix.description}</p>
         </div>
       </Link>
       <footer className="mt-auto flex items-center justify-between border-t border-gray-100 px-5 py-3 text-sm font-medium text-lakersPurple-600">
